@@ -1,0 +1,51 @@
+* {
+    --header-height: 50px;
+    --header-background: #337897;
+    --left-width: 84px
+
+}
+
+body {
+    background: #e4e9f5;
+}
+
+@font-face {
+    font-family: "Sedan-SC";
+    src: url(./font/SedanSC-Regular.ttf);
+}
+
+.App-header {
+    display: block;
+    width: 100vw;
+    height: var(--header-height);
+    background-color: var(--header-background);
+}
+
+.header {
+    display: block;
+    text-align: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bolder;
+    font-family: "Sedan-SC", serif;
+    transform: translateY(5px);
+}
+
+.App-main {
+    display: flex;
+    flex-direction: row;
+}
+
+.left-bar {
+    display: block;
+    width: var(--left-width);
+}
+
+.main-page {
+    display: block;
+    width: calc(100vw - var(--left-width));
+    height: 100vh;
+    overflow: hidden;
+    /*background: linear-gradient(to right, rgba(228, 233, 245, 0.3), rgba(228, 233, 245, 0.3)), url("../public/image/body-background.png");*/
+    background: url("../public/image/body-background.png");
+}
