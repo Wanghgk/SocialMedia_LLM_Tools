@@ -1,0 +1,12 @@
+.card-list {
+    width: 80%;
+    display: block;
+    margin: auto;
+    transform: translateY(10px);
+}
+
+.tool-card {
+    /*background: linear-gradient(135deg, rgba(100,215,220,0.6) , rgba(100,215,220,0.2) 80% 95%);*/
+    display: block;
+    width: 67%;
+}
