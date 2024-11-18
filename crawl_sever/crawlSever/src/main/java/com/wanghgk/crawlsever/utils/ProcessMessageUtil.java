@@ -1,8 +1,10 @@
-package com.crawlsever.crawlsever.utils;
+package com.wanghgk.crawlsever.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.crawlsever.crawlsever.pojo.BinaryRes;
+import com.wanghgk.crawlsever.pojo.BinaryRes;
+import com.wanghgk.crawlsever.pojo.ClassifyRes;
+import lombok.Getter;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -19,7 +21,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
@@ -31,7 +32,15 @@ public class ProcessMessageUtil {
 
     private String questionKeyWord;
 
-    private List<BinaryRes> resList;
+    private int mode;
+
+    private List<String> opinions;
+
+    @Getter
+    private List<BinaryRes> binaryResList;
+
+    @Getter
+    private List<ClassifyRes> classifyResList;
 
 
     private String zhihuStartUrl = "https://zhihu.com/api/v4/questions/";
@@ -45,11 +54,16 @@ public class ProcessMessageUtil {
     public ProcessMessageUtil(String questionId, String questionKeyWord) {
         this.questionId = questionId;
         this.questionKeyWord = questionKeyWord;
-        this.resList = new ArrayList<>();
+        this.binaryResList = new ArrayList<>();
+        this.mode = 0;
     }
 
-    public List<BinaryRes> getResList() {
-        return resList;
+    public ProcessMessageUtil(String questionId, String questionKeyWord, List<String> opinions) {
+        this.questionId = questionId;
+        this.questionKeyWord = questionKeyWord;
+        this.opinions = opinions;
+        this.classifyResList = new ArrayList<>();
+        this.mode = 1;
     }
 
     public boolean getIsEnd() {
@@ -60,7 +74,7 @@ public class ProcessMessageUtil {
         shutDownNow = true;
     }
 
-    public void binaryJudge() {
+    public void startJudge() {
         isEnd = false;
         String zhihuQuestionId = questionId;
 
@@ -86,7 +100,13 @@ public class ProcessMessageUtil {
                     answerString += answerElement.text() + "\n";
                 }
 
-                Future future = es.submit(new getModelMessage(modelUrl, answerString, answer.getJSONObject("target").getInteger("voteup_count"), answer.getJSONObject("target").getInteger("thanks_count"), answer.getJSONObject("target").getInteger("created_time")));
+                Future future;
+                if(mode == 0) {
+                    future = es.submit(new getBinaryModelMessage(modelUrl, answerString, answer.getJSONObject("target").getInteger("voteup_count"), answer.getJSONObject("target").getInteger("thanks_count"), answer.getJSONObject("target").getInteger("created_time")));
+                }else{
+                    future = es.submit(new getClassifyModelMessage(modelUrl, answerString, answer.getJSONObject("target").getInteger("voteup_count"), answer.getJSONObject("target").getInteger("thanks_count"), answer.getJSONObject("target").getInteger("created_time")));
+
+                }
                 try {
                     future.get(5, TimeUnit.MINUTES);
                 } catch (InterruptedException e) {
@@ -128,7 +148,7 @@ public class ProcessMessageUtil {
         }
     }
 
-    class getModelMessage implements Runnable {
+    class getBinaryModelMessage implements Runnable {
 
         private String targetModelUrl;
 
@@ -141,7 +161,7 @@ public class ProcessMessageUtil {
         private static Integer time;
 
 
-        public getModelMessage(String targetModelUrl, Object answerObject, Integer supports, Integer thanks, Integer time) {
+        public getBinaryModelMessage(String targetModelUrl, Object answerObject, Integer supports, Integer thanks, Integer time) {
 
             this.targetModelUrl = targetModelUrl;
             this.answerString = JSON.parseObject(answerObject.toString()).getJSONObject("target").getString("content");
@@ -150,7 +170,7 @@ public class ProcessMessageUtil {
             this.time = time;
         }
 
-        public getModelMessage(String targetModelUrl, String answerString, Integer supports, Integer thanks, Integer time) {
+        public getBinaryModelMessage(String targetModelUrl, String answerString, Integer supports, Integer thanks, Integer time) {
             this.targetModelUrl = targetModelUrl;
             this.answerString = answerString;
             this.supports = supports;
@@ -193,19 +213,94 @@ public class ProcessMessageUtil {
             if (modelJudent.contains("支持")) {
 //                judgeMap.compute("支持", (k, tmpCount) -> tmpCount + 1);
                 BinaryRes binaryRes = new BinaryRes("支持", supports, thanks, time);
-                resList.add(binaryRes);
+                binaryResList.add(binaryRes);
             } else if (modelJudent.contains("反对")) {
 //                judgeMap.compute("反对", (k, tmpCount) -> tmpCount + 1);
                 BinaryRes binaryRes = new BinaryRes("反对", supports, thanks, time);
-                resList.add(binaryRes);
+                binaryResList.add(binaryRes);
             } else if (modelJudent.contains("无法判断")) {
 //                judgeMap.compute("无法判断", (k, tmpCount) -> tmpCount + 1);
                 BinaryRes binaryRes = new BinaryRes("无法判断", supports, thanks, time);
-                resList.add(binaryRes);
+                binaryResList.add(binaryRes);
             } else {
 //                judgeMap.compute("模型失效", (k, tmpCount) -> tmpCount + 1);
                 BinaryRes binaryRes = new BinaryRes("模型失效", supports, thanks, time);
-                resList.add(binaryRes);
+                binaryResList.add(binaryRes);
+            }
+
+            lock.unlock();
+        }
+    }
+
+    class getClassifyModelMessage implements Runnable {
+
+        private String targetModelUrl;
+
+        private String answerString;
+
+        private static Integer supports;
+
+        private static Integer thanks;
+
+        private static Integer time;
+
+
+        public getClassifyModelMessage(String targetModelUrl, Object answerObject, Integer supports, Integer thanks, Integer time) {
+
+            this.targetModelUrl = targetModelUrl;
+            this.answerString = JSON.parseObject(answerObject.toString()).getJSONObject("target").getString("content");
+            this.supports = supports;
+            this.thanks = thanks;
+            this.time = time;
+        }
+
+        public getClassifyModelMessage(String targetModelUrl, String answerString, Integer supports, Integer thanks, Integer time) {
+            this.targetModelUrl = targetModelUrl;
+            this.answerString = answerString;
+            this.supports = supports;
+            this.thanks = thanks;
+            this.time = time;
+        }
+
+        @Override
+        public void run() {
+            String content = answerString;
+
+            JSONObject sendData = new JSONObject();
+            sendData.put("stream", false);
+
+            sendData.put("model", "llama3.1");
+            sendData.put("messages", new JSONObject[]{
+                    getMessageObj("user", "你是一个专业的文章主题分类工作者，将就<目标问题>在以下<观点列表>中选择与提供的<文本主要内容>最契合的<观点>，并且仅输出该<观点>本身，不输出其余任何信息。"),
+                    getMessageObj("assistant", "明白了，我将根据提供的<文本主要内容>就<目标问题>在<观点列表>中选择一条最匹配的一条<观点>，并且仅输出匹配到的<观点>本身，若无匹配到的<观点>则会输出\"未匹配到观点\"，并且不输出任何其他信息。"),
+                    getMessageObj("user", "<目标问题>:"+questionKeyWord+",<观点列表>:"+opinions+",<文本主要内容>:"+content)
+            });
+
+            //请求大模型，此处同步阻塞
+            String llamaResult = "";
+
+            llamaResult = apacheHttpPostClient(targetModelUrl + "chat", sendData.toJSONString());
+
+
+            JSONObject llamaResultJsonObject = JSON.parseObject(llamaResult.toString());
+            String modelJudent = "";
+
+            modelJudent = llamaResultJsonObject.getJSONObject("message").getString("content");
+
+            classifyJudgementsCount(modelJudent);
+
+        }
+
+        private void classifyJudgementsCount(String modelJudent) {
+            lock.lock();
+
+            boolean matched = false;
+            for(String opinion : opinions) {
+                if(modelJudent.contains(opinion)) {
+                    matched = true;
+                    ClassifyRes classifyRes = new ClassifyRes(opinion, supports, thanks, time);
+                    classifyResList.add(classifyRes);
+                }
             }
 
             lock.unlock();
@@ -224,7 +319,7 @@ public class ProcessMessageUtil {
         HttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
         httpGet.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36 Edg/128.0.0.0");
-        httpGet.setHeader("Cookie", "_xsrf=hvjXKKMRuGyNrdkOCbK6aTF4Ux5CnurX; _zap=ecd5ef5e-9242-4167-afa5-977598c908c4; d_c0=AUBSBfxaAxmPTipx4U9Uom-5RNUPMx2W_pQ=|1722501907; q_c1=84647a4152cf41b39da6941dbeb61a89|1726392997000|1726392997000; __utma=51854390.531860950.1728830548.1728830548.1728830548.1; __utmz=51854390.1728830548.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=51854390.100-1|2=registration_date=20190624=1^3=entry_date=20190624=1; tst=r; Hm_lvt_98beee57fd2ef70ccdd5ca52b9740c49=1728731185,1728830222,1728873870,1729003104; HMACCOUNT=20131A97553A2F3D; z_c0=2|1:0|10:1729003104|4:z_c0|80:MS4xaDVaX0VBQUFBQUFtQUFBQVlBSlZUV0RNLTJlRGZLc3FCR2tLSlFNSFB5ZU5SY2hncE5UNVFRPT0=|e6cfcabba264d309db0ff351f165608144d3657409b9f84460d1ae112ef5ce1e; SESSIONID=Vkn3IXI7zGvOInJlAR6seP1A6xePK6bgfEYTShtxzoa; JOID=W10TBkqhehWla0CdRa1uiJKSFppT-xJ4kioU13HTMWDpJibbKs8EHM5vT51Cf3J2_lco7_8OVBwd0e0SlPDCVC8=; osd=W10XBUyhehGmbUCdQa5oiJKWFZxT-xZ7lCoU03LVMWDtJSDbKssHGs5vS55Ef3Jy_VEo7_sNUhwd1e4UlPDGVyk=; __zse_ck=003_bshKsimzP1ZvN7UqjT7lhBHBJZomaN8nIKdk0IGYweF7sxhvu49e3NFluIhEHvqVrtoZSExWZU+GTnWL3pRpyudEw6P0reWSuhRECWYKvHUg; BEC=a01fadfc4171a858a2dc4d2c10793182; Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49=1729003882");
+        httpGet.setHeader("Cookie", "_xsrf=hvjXKKMRuGyNrdkOCbK6aTF4Ux5CnurX; _zap=ecd5ef5e-9242-4167-afa5-977598c908c4; d_c0=AUBSBfxaAxmPTipx4U9Uom-5RNUPMx2W_pQ=|1722501907; q_c1=84647a4152cf41b39da6941dbeb61a89|1726392997000|1726392997000; __utma=51854390.531860950.1728830548.1728830548.1728830548.1; __utmz=51854390.1728830548.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=51854390.100-1|2=registration_date=20190624=1^3=entry_date=20190624=1; gdxidpyhxdE=qxdBwOZmm8LwM0wN6OpYl3BU7PpPiJpj09W%5CzanE8txlkYOc775eztCuDeB1xfTvVaxjEP1g4RuKN4%5CGlB%2Bpt%2FhTvCoAW8%2BTfwjER%2Bv8LZv2ArM6yz3GdM%5C98Srol4E7%2B4NJ%2BpYCXRMnVW3iVNeqaKC4COj6p3CMjqZnwciae43QXh9c%3A1731746827562; captcha_session_v2=2|1:0|10:1731745959|18:captcha_session_v2|88:LzhnQnc4c0VGK1BOK3RscEhTeGNZMkpOTUxxdDhRb25zMmJKUERGL3RRQ2lyNlEzS1BMenU4dmlEMWs2ZGxLaQ==|4c78a70e6fe8e432caf1d6d15d42d5b2d8f4f413c755c5c996b7484b8e13165b; __snaker__id=X3Xmz44dp1f1NUYN; captcha_ticket_v2=2|1:0|10:1731745980|17:captcha_ticket_v2|728:eyJ2YWxpZGF0ZSI6IkNOMzFfM05SUGQ0MXk5NGYuOUs5RldaYXFrcnB5MDZMQmJELjJqeERqSVA0cWY1cnVyRDF4VUp3dypSTXJ0RHNUeXZOcGtCVXhBTUoxT3czYU5oWUJ5d2RIaSpDTVdrZGlXYk14S0QyYUJydmNscyprWCpENXdtUE1ZYlkwVG12OEFBXzRCV1ZjNVExaFBEdnBlKjJKUnR3UzRYdDEzZUx1WEQzVzlIR1BBYVBDSVhCaHFJc2c4QkVBYW5uaGl5OV9mZ3pxNmpMdWNtMWdwbDRQKm5TQkJpdmhvUUFacGlaaVRYcGJwSHZ0NFpKeDV5SVNrbXFlQXN5OVdVb0U2SGJodEE5ZGJkWksqNkNES0dncUZSKmE2T0hUeVlETEg0b0RyKkRTZVNVbm1PZlF1TWFpX2hwbUtlNGdDU2V3cmtCOEhwaGlVYzR6Z0IuWG12YUFIWlNSWUYzRW05d3Vxc0VLOU5maEgqKnpxanRFR2NtUS40bG8xQW5oZEpGZTA1VkN3bWliaWczcG1qUSpfZ1Y1cF9YS0NXampxMzZFMTZfT05MTTZlSlRTSnpyaEdrSlZsYUtxcmpSaTU1X0R1ajhRYlY4SmZpR29XRlBFVUpyQWFLSE5JOXdvZW1zTjZtZWZUdGk1YjNldk9aRXJxTGpkX3R0ZlM4cFRDYTNWKkdkQ2hCMk5MX3JxWk03N192X2lfMSJ9|54ef31c8cf2e0e6cd686bdb3340e461da92fc331a3975fd0f2edb8f9eedb6d37; z_c0=2|1:0|10:1731745996|4:z_c0|92:Mi4xd3A3NVBnQUFBQUFCUUZJRl9Gb0RHU1lBQUFCZ0FsVk56S1lsYUFDd20tQzJ0MlgzMDNmYm9xelVxeVFTSXZwOTB3|e94089da583dc2262569723d303ce8ede470f502e2b78a2b797af4921d4e5e43; __zse_ck=003_bIDFm=gJK4dTlzWihQvYOGiYba8WJ/wXh4t1M3aPkO+p29pnYF0xY1Fy1W/TJl+Eke+Wq8LjNwtDG+t0gCVDM9QdlIPdzAnLuUCnqQhw+YXV; tst=r; Hm_lvt_98beee57fd2ef70ccdd5ca52b9740c49=1731639539,1731696264,1731743917,1731757579; HMACCOUNT=20131A97553A2F3D; SESSIONID=mii1zeJmXzBqEdjkPsJAUaiJ2HmTuDus7gYmGnWXw5d; JOID=VVocAk6kMo6L9wpRdqIlEr8FVlVhzFDvvo9qEBP-Tcfytmw-Fqa3uurwBFJ60Lhh5JVLMjNbmWWKv0Z9oZqAMyU=; osd=U1ocBEmiMo6N8AxRdqQiFL8FUFJnzFDpuYlqEBX5S8fysGs4FqaxvezwBFR91rhh4pJNMjNdnmOKv0B6p5qANSI=; Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49=1731757584; BEC=ec64a27f4feb1b29e8161db426d61998");
 
         HttpResponse httpResponse = null;
         String content = null;

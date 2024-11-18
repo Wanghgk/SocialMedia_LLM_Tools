@@ -5,13 +5,13 @@ import axios from "axios";
 import sleepUtils from "../../utils/sleepUtils";
 import qs from "qs";
 
-import Style from "./BinaryShow.module.css";
+import Style from "./ZhiHuBinaryShow.module.css";
 import {Box, Button, TextField} from "@mui/material";
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import CustomActiveShapePieChart from "../CustomActiveShapePieChart/CustomActiveShapePieChart";
 import LineChartWithXAxisPadding from "../LineChartWithXAxisPadding/LineChartWithXAxisPadding";
 
-export default function BinaryShow() {
+export default function ZhiHuBinaryShow() {
 
     let [data, setData] = useState([]);
     let [submitted, setSubmitted] = useState(false);
@@ -72,7 +72,7 @@ export default function BinaryShow() {
         let sendData = {
             questionId: questionId.current
         }
-        axios.post("http://localhost:8080/anazhihu/result", sendData)
+        axios.post("http://localhost:8080/anazhihu/binaryResult", sendData)
             .then(
                 (response) => {
                     console.log(response.data);

@@ -1,13 +1,10 @@
-package com.crawlsever.crawlsever.interceptors;
+package com.wanghgk.crawlsever.interceptors;
 
-import com.crawlsever.crawlsever.utils.JwtUtil;
-import com.crawlsever.crawlsever.utils.ThreadLocalUtil;
+import com.wanghgk.crawlsever.utils.ThreadLocalUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import java.util.Map;
 
 @Component
 public class LoginInterceptor implements HandlerInterceptor {

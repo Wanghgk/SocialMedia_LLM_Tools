@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: crawlSever
+    servlet:
+      multipart:
+        maxFileSize: 10MB
+        maxRequestSize: 100MB
+
+  autoconfigure:
+    scanBasePackages: com.wanghgk.crawlsever.mapper
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/zhihu
+    username: root
+    password: admin123
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的自动转换

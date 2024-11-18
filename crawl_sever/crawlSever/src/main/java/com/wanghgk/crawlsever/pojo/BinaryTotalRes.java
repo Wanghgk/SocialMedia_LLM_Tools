@@ -1,4 +1,4 @@
-package com.crawlsever.crawlsever.pojo;
+package com.wanghgk.crawlsever.pojo;
 
 import lombok.Data;
 
