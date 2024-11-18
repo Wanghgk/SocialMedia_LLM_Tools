@@ -1,4 +1,4 @@
-package com.crawlsever.crawlsever.utils;
+package com.wanghgk.crawlsever.utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

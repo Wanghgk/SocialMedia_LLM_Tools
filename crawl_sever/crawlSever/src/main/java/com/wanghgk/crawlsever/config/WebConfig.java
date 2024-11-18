@@ -1,6 +1,6 @@
-package com.crawlsever.crawlsever.config;
+package com.wanghgk.crawlsever.config;
 
-import com.crawlsever.crawlsever.interceptors.LoginInterceptor;
+import com.wanghgk.crawlsever.interceptors.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

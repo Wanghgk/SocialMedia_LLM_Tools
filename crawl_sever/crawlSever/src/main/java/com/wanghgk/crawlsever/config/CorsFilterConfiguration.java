@@ -1,4 +1,4 @@
-package com.crawlsever.crawlsever.config;// TODO package 声明
+package com.wanghgk.crawlsever.config;// TODO package 声明
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.stream.Stream;

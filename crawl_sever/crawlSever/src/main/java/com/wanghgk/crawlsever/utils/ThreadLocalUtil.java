@@ -1,4 +1,4 @@
-package com.crawlsever.crawlsever.utils;
+package com.wanghgk.crawlsever.utils;
 
 /**
  * ThreadLocal 工具类

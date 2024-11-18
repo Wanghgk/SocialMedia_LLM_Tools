@@ -1,4 +1,4 @@
-package com.crawlsever.crawlsever;
+package com.wanghgk.crawlsever;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
