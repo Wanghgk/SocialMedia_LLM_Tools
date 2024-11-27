@@ -90,29 +90,26 @@ export default class LineChartWithXAxisPadding extends PureComponent {
         // 合并分组后的数据与完整的月份范围
         let listData = []
         const totalStamp = {...fullRange, ...grouped};
-        console.log(totalStamp);
+        // console.log(totalStamp);
         for(const key in totalStamp) {
-            let agree = 0
-            let disagree = 0
-            let notMind = 0
-            let error = 0
+            let resultNames = this.props.resultNames
             for(const item of totalStamp[key]) {
-                if(item.result === "支持") {
-                    agree += this.props.getPlus(item.supports,item.thanks);
-                }else if(item.result === "反对") {
-                    disagree += this.props.getPlus(item.supports,item.thanks)
-                }else if(item.result === "无法判断") {
-                    notMind += this.props.getPlus(item.supports,item.thanks)
-                }else if(item.result === "模型失效") {
-                    error += this.props.getPlus(item.supports,item.thanks)
-                }
+                resultNames.forEach((resultName,index)=>{
+                    if(item.result === resultName.name) {
+                        resultNames[index].value += this.props.getPlus(item.supports,item.thanks);
+                    }
+                })
             }
             listData[listData.length] = {
                 "name": key,
-                "agree": agree,
-                "disagree": disagree,
-                "notMind": notMind
-            } ;
+            }
+            for(const resultName of resultNames) {
+                listData[listData.length-1][resultName.name] = resultName.value;
+            }
+
+            resultNames.forEach((resultName)=>{
+                resultName.value = 0
+            })
         }
         this.setState({data: listData})
     }
@@ -128,9 +125,14 @@ export default class LineChartWithXAxisPadding extends PureComponent {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="agree" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="disagree" stroke="#82ca9d" />
-                    <Line type="monotone" dataKey="notMind" stroke="#ff7300" />
+                    {/*<Line type="monotone" dataKey="agree" stroke="#8884d8" activeDot={{ r: 8 }} />*/}
+                    {
+                        this.props.resultNames.map((item) => {
+                            return <Line type="monotone" dataKey={item.name} stroke="#ff7300" />
+                        })
+                    }
+                    {/*<Line type="monotone" dataKey="disagree" stroke="#82ca9d" />*/}
+                    {/*<Line type="monotone" dataKey="notMind" stroke="#ff7300" />*/}
                 </LineChart>
             </ResponsiveContainer>
         );

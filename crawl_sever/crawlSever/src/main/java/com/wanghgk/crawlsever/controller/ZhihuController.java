@@ -30,6 +30,7 @@ public class ZhihuController {
         return "运行完成";
     }
 
+    @PostMapping("/classify")
     public String classify(@RequestBody String data) {
         JSONObject dataObj = JSONObject.parseObject(data);
         String questionId = dataObj.getString("questionId");

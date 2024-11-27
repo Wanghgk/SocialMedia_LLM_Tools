@@ -1,9 +1,18 @@
 {
     "tool":[
         {
-            "id" : 1,
+            "id" : 0,
             "name" : "知乎回答二分工具",
-            "picture" : "../image/11.gif",
+            "component": "/BinaryShow",
+            "picture" : "../image/zhihu.jpg",
+            "description" : "这是一个工具",
+            "author" : "Wanghgk"
+        },
+        {
+            "id" : 1,
+            "name" : "知乎回答自定义分类工具",
+            "component": "/ClassifyShow",
+            "picture" : "../image/zhihu.jpg",
             "description" : "这是一个工具",
             "author" : "Wanghgk"
         }

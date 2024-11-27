@@ -5,6 +5,8 @@ import axios from "axios";
 import sleepUtils from "../../utils/sleepUtils";
 import qs from "qs";
 
+import IP from "../../static/ip.json";
+
 import Style from "./ZhiHuBinaryShow.module.css";
 import {Box, Button, TextField} from "@mui/material";
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
@@ -21,36 +23,56 @@ export default function ZhiHuBinaryShow() {
     const isEnd = useRef(true);
     const show = useRef();
     const [largeItem, setLargeItem] = useState(0);
+
+    const binaryResultName = [
+        {
+            name: "支持",
+            value: 0
+        },
+        {
+            name: "反对",
+            value: 0
+        },
+        {
+            name: "无法判断",
+            value: 0
+        },
+        {
+            name: "模型失效",
+            value: 0
+        },
+    ]
     const Items = [
         {
             id:0,
             text:"回答直接分布",
             component: <CustomActiveShapePieChart list={data} getPlus={(support, thanks) => {
                 return 1
-            }}/>
+            }} resultNames={binaryResultName}/>
         },
         {
             id:1,
             text: "回答加权分布",
             component: <CustomActiveShapePieChart list={data} getPlus={(support, thanks) => {
                 return Number(support + thanks)
-            }}/>
+            }} resultNames={binaryResultName}/>
         },
         {
             id:2,
             text: "时间直接分布",
             component: <LineChartWithXAxisPadding list={data} getPlus={(support, thanks) => {
                 return 1
-            }}/>
+            }} resultNames={binaryResultName}/>
         },
         {
             id:3,
             text: "时间加权分布",
             component: <LineChartWithXAxisPadding list={data} getPlus={(support, thanks) => {
                 return Number(support + thanks)
-            }}/>
+            }} resultNames={binaryResultName}/>
         }
     ]
+
 
     const runModel = () => {
         let sendData = {
@@ -58,7 +80,7 @@ export default function ZhiHuBinaryShow() {
             questionKeyWord: keyWords.current
         }
         console.log(sendData);
-        axios.post("http://localhost:8080/anazhihu/support", sendData)
+        axios.post(IP.localhost+"/anazhihu/support", sendData)
             .then((response) => {
                 console.log(response)
                 setSubmitted(false);
@@ -72,7 +94,7 @@ export default function ZhiHuBinaryShow() {
         let sendData = {
             questionId: questionId.current
         }
-        axios.post("http://localhost:8080/anazhihu/binaryResult", sendData)
+        axios.post(IP.localhost+"/anazhihu/binaryResult", sendData)
             .then(
                 (response) => {
                     console.log(response.data);
@@ -106,7 +128,7 @@ export default function ZhiHuBinaryShow() {
         let sendData = {
             questionId: questionId.current
         }
-        axios.post("http://localhost:8080/anazhihu/shutDownNow", sendData)
+        axios.post(IP.localhost+"/anazhihu/shutDownNow", sendData)
             .catch((response)=>{
                 isEnd.current = true
                 setSubmitted(false)

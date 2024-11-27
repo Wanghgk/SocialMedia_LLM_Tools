@@ -15,17 +15,12 @@ export default function Tools() {
                 <Grid2 container direction="row" spacing={0} style={{width:'90vw', marginLeft:'auto',marginRight:'auto'}}>
                     <Grid2 size={4} item>
                         <div className={Style["tool-card"]}>
-                            <ToolCard image={tool[0].picture} name={tool[0].name} description={tool[0].description}/>
+                            <ToolCard image={tool[0].picture} name={tool[0].name} description={tool[0].description} component={tool[0].component}/>
                         </div>
                     </Grid2>
                     <Grid2 size={4} item>
                         <div className={Style["tool-card"]}>
-                            <ToolCard image={tool[0].picture} name={tool[0].name} description={tool[0].description}/>
-                        </div>
-                    </Grid2>
-                    <Grid2 size={4} item>
-                        <div className={Style["tool-card"]}>
-                            <ToolCard image={tool[0].picture} name={tool[0].name} description={tool[0].description}/>
+                            <ToolCard image={tool[1].picture} name={tool[1].name} description={tool[1].description} component={tool[1].component}/>
                         </div>
                     </Grid2>
                 </Grid2>

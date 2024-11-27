@@ -2,7 +2,7 @@ import {Box, Button, Card, CardActions, CardContent, CardMedia, Typography} from
 import {Link, NavLink} from "react-router-dom";
 import Style from "./ToolCard.module.css";
 
-function ToolCard({image, name, description, }) {
+function ToolCard({image, name, description, component}) {
 
   return (
       <Card sx={{ maxWidth: 345 }} style={{background: "linear-gradient(127.09deg, rgb(142 145 160 / 94%) 19.41%, rgba(36, 38, 51, 0.49) 76.65%)"}}>
@@ -22,7 +22,7 @@ function ToolCard({image, name, description, }) {
           </CardContent>
           <CardActions>
               <Button size="small">Share</Button>
-              <NavLink component={Link} to="/BinaryShow"><Button size="small">Learn More</Button></NavLink>
+              <NavLink component={Link} to={component}><Button size="small">Learn More</Button></NavLink>
 
           </CardActions>
       </Card>
