@@ -18,7 +18,7 @@ const renderActiveShape = (props) => {
 
     return (
         <g>
-            <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+            <text x={cx} y={cy} dy={8} textAnchor="middle" fill={"#000"} style={{display:"block",width:"30px",height:"100px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}} >
                 {payload.name}
             </text>
             <Sector
@@ -41,7 +41,7 @@ const renderActiveShape = (props) => {
             />
             <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
             <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-            <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`PV ${value}`}</text>
+            <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`${value}`}</text>
             <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
                 {`(Rate ${(percent * 100).toFixed(2)}%)`}
             </text>
@@ -54,12 +54,7 @@ export default class CustomActiveShapePieChart extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            data: [
-                { name: '支持', value: 0 },
-                { name: '反对', value: 0 },
-                { name: '无法判断', value: 0 },
-                { name: '模型失效', value: 0 },
-            ],
+            data:this.props.resultNames,
             activeIndex: 0,
         };
     }
@@ -76,29 +71,17 @@ export default class CustomActiveShapePieChart extends PureComponent {
     }
 
     listToData(list) {
-        let agree = 0
-        let disagree = 0
-        let notMind = 0
-        let error = 0
+        let resultNames = this.props.resultNames;
         list.forEach((item) => {
-            if(item.result === '支持') {
-                agree += this.props.getPlus(item.supports, item.thanks)
-            }else if(item.result === '反对') {
-                disagree += this.props.getPlus(item.supports, item.thanks)
-            }else if(item.result === '无法判断') {
-                notMind += this.props.getPlus(item.supports, item.thanks)
-            }else if(item.result === '模型失效') {
-                error += this.props.getPlus(item.supports, item.thanks)
-            }
+            resultNames.forEach((resultName,index) => {
+                if (item.result === resultName.name) {
+                    resultNames[index].value += this.props.getPlus(item.supports, item.thanks)
+                }
+            })
         })
 
         this.setState({
-            data: [
-                { name: '支持', value: agree },
-                { name: '反对', value: disagree },
-                { name: '无法判断', value: notMind },
-                { name: '模型失效', value: error },
-            ],
+            data: resultNames,
         })
     }
 
@@ -113,16 +96,16 @@ export default class CustomActiveShapePieChart extends PureComponent {
 
         return (
             <ResponsiveContainer width="100%" height="100%">
-                <PieChart width={400} height={400}>
+                <PieChart width={this.props.width} height={this.props.height}>
                     <Pie
                         activeIndex={this.state.activeIndex}
                         activeShape={renderActiveShape}
                         data={data}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
+                        innerRadius={this.props.width - 20}
+                        outerRadius={this.props.width}
+                        fill="#787878"
                         dataKey="value"
                         onMouseEnter={this.onPieEnter}
                     />

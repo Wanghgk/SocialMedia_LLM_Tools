@@ -57,6 +57,15 @@ public class ZhihuServiceImpl implements ZhihuService {
             processMessageUtilMap.put(questionId,new ProcessMessageUtil(questionId, questionKeyWord, opinions));
         }
         ProcessMessageUtil processMessageUtil = processMessageUtilMap.get(questionId);
+        System.out.println(questionId+"号模型即将开始");
+        processMessageUtil.startJudge();
+
+        try {
+            Thread.sleep(1000*20);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        processMessageUtilMap.remove(questionId);
     }
 
     @Override
@@ -171,6 +180,7 @@ public class ZhihuServiceImpl implements ZhihuService {
                             ++count;
                         }
                     }
+                    System.out.println(questionId+"号问题已完成");
                     zhiHuMapper.updateQuestionUpdateTime(questionId);
                 }catch (Exception e){
                     System.out.println(questionId+"号问题出现异常。错误信息"+e.getMessage());
